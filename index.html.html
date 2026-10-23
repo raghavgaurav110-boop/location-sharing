@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location Sharing</title>
+</head>
+<body style="font-family:Arial;text-align:center;padding:40px">
+  <h2>📍 अपनी लोकेशन शेयर करें</h2>
+  <p>आपकी अनुमति से ही लोकेशन प्राप्त होगी।</p>
+  <button id="loc" style="padding:14px;font-size:17px">
+    अपनी लोकेशन प्राप्त करें
+  </button>
+  <p id="status"></p>
+  <button id="share" hidden>लोकेशन शेयर करें</button>
+
+  <script>
+    let mapLink = "";
+
+    document.getElementById("loc").onclick = () => {
+      const status = document.getElementById("status");
+
+      if (!navigator.geolocation) {
+        status.textContent = "आपका ब्राउज़र लोकेशन सपोर्ट नहीं करता।";
+        return;
+      }
+
+      status.textContent = "लोकेशन की अनुमति माँगी जा रही है…";
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+
+          mapLink = `https://maps.google.com/?q=${lat},${lon}`;
+          status.textContent = "लोकेशन मिल गई। अब आप इसे शेयर कर सकते हैं।";
+          document.getElementById("share").hidden = false;
+        },
+        () => {
+          status.textContent =
+            "लोकेशन नहीं मिली। अनुमति और डिवाइस की Location Settings जाँचें।";
+        },
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    };
+
+    document.getElementById("share").onclick = async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "मेरी लोकेशन",
+            text: "यह मेरी शेयर की गई लोकेशन है:",
+            url: mapLink
+          });
+        } catch (e) {}
+      } else {
+        await navigator.clipboard.writeText(mapLink);
+        document.getElementById("status").textContent =
+          "मैप लिंक कॉपी हो गया। इसे Instagram DM में भेजें।";
+      }
+    };
+  </script>
+</body>
+</html>
